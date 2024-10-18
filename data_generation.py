@@ -8,7 +8,7 @@ def generate_data(num_floors, units_per_floor, num_days):
     
     for floor in range(1, num_floors + 1):
         for unit in range(1, units_per_floor + 1):
-            num_residents = np.random.randint(1, 5)
+            num_residents = np.random.randint(3, 6)
             unit_size = np.random.randint(50, 150)  # in square meters
             
             for day in range(num_days):

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Water Conservation System</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
@@ -24,6 +25,7 @@
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Forecast</button>
             </form>
             <div id="forecast-result" class="mt-4"></div>
+            <div id="forecast-plot" class="mt-4"></div>
         </div>
         
         <div class="mt-8">
@@ -42,6 +44,31 @@
                 <p>RMSE: ${data.rmse.toFixed(2)}</p>
                 <p>Forecast: ${data.forecast.map(v => v.toFixed(2)).join(', ')}</p>
             `;
+
+            // Create line plot
+            const trace1 = {
+                x: data.dates,
+                y: data.actual,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Actual'
+            };
+
+            const trace2 = {
+                x: data.dates,
+                y: data.forecast,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Forecast'
+            };
+
+            const layout = {
+                title: `Water Consumption Forecast (Floor ${floor}, Unit ${unit})`,
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Water Usage (Liters)' }
+            };
+
+            Plotly.newPlot('forecast-plot', [trace1, trace2], layout);
         });
     </script>
 </body>
