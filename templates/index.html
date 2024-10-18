@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Conservation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Water Conservation System</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Get Forecast</h2>
+            <form id="forecast-form" class="space-y-4">
+                <div>
+                    <label for="floor" class="block mb-1">Floor:</label>
+                    <input type="number" id="floor" name="floor" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label for="unit" class="block mb-1">Unit:</label>
+                    <input type="number" id="unit" name="unit" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Forecast</button>
+            </form>
+            <div id="forecast-result" class="mt-4"></div>
+        </div>
+        
+        <div class="mt-8">
+            <a href="/visualizations" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">View Visualizations</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('forecast-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const floor = document.getElementById('floor').value;
+            const unit = document.getElementById('unit').value;
+            const response = await fetch(`/forecast?floor=${floor}&unit=${unit}`);
+            const data = await response.json();
+            document.getElementById('forecast-result').innerHTML = `
+                <p>RMSE: ${data.rmse.toFixed(2)}</p>
+                <p>Forecast: ${data.forecast.map(v => v.toFixed(2)).join(', ')}</p>
+            `;
+        });
+    </script>
+</body>
+</html>
