@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <Div>
+        <img src="templates\BG1.webp" alt="bg-blue-500">
+    
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Water Management System</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Get Forecast</h2>
+            <form id="forecast-form" class="space-y-4">
+                <div>
+                    <label for="room" class="block mb-1">Room:</label>
+                    <input type="text" id="room" name="room" required class="w-full px-3 py-2 border rounded" placeholder="e.g., A101">
+                </div>
+                <div>
+                    <label for="start-date" class="block mb-1">Start Date:</label>
+                    <input type="date" id="start-date" name="start-date" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <div>
+                    <label for="end-date" class="block mb-1">End Date:</label>
+                    <input type="date" id="end-date" name="end-date" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Get Forecast</button>
+            </form>
+            <div id="forecast-plot" class="mt-4"></div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Check Usage</h2>
+            <form id="usage-form" class="space-y-4">
+                <div>
+                    <label for="usage-room" class="block mb-1">Room:</label>
+                    <input type="text" id="usage-room" name="usage-room" required class="w-full px-3 py-2 border rounded" placeholder="e.g., A101">
+                </div>
+                <div>
+                    <label for="usage-date" class="block mb-1">Date:</label>
+                    <input type="date" id="usage-date" name="usage-date" required class="w-full px-3 py-2 border rounded">
+                </div>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Check Usage</button>
+            </form>
+            <div id="usage-result" class="mt-4"></div>
+        </div>
+        
+        <div class="mt-8">
+            <a href="/visualizations" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">View Visualizations</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('forecast-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const room = document.getElementById('room').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate  = document.getElementById('end-date').value;
+            
+            const response = await fetch('/forecast', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ room, start_date: startDate, end_date: endDate }),
+            });
+            const data = await response.json();
+            
+            const trace1 = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.ets_forecast),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'ETS Forecast'
+            };
+            
+            const trace2 = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.arima_forecast),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'ARIMA Forecast'
+            };
+            
+            const trace3 = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.lstm_forecast),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'LSTM Forecast'
+            };
+            
+            const trace4 = {
+                x: data.map(d => d.date),
+                y: data.map(d => d.ensemble_forecast),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Ensemble Forecast'
+            };
+            
+            const layout = {
+                title: `Water Consumption Forecast for Room ${room}`,
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Water Usage (Liters)' }
+            };
+            
+            Plotly.newPlot('forecast-plot', [trace1, trace2, trace3, trace4], layout);
+        });
+        
+        document.getElementById('usage-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const room = document.getElementById('usage-room').value;
+            const date = document.getElementById('usage-date').value;
+            
+            const response = await fetch('/check_usage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ room, date }),
+            });
+            const data = await response.json();
+            
+            const resultDiv = document.getElementById('usage-result');
+            if (data.exceeded) {
+                resultDiv.innerHTML = `<p class="text-red-600">Alert: Water usage (${data.actual_usage.toFixed(2)} liters) has exceeded 90% of the expected usage (${data.expected_usage.toFixed(2)} liters). A notification has been sent.</p>`;
+            } else {
+                resultDiv.innerHTML = `<p class="text-green-600">Water usage (${data.actual_usage.toFixed(2)} liters) is within normal range. Expected usage: ${data.expected_usage.toFixed(2)} liters.</p>`;
+            }
+        });
+    </script>
+    </Div>
+</body>
+</html>
